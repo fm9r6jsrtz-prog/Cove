@@ -1,5 +1,6 @@
 import SwiftUI
 import LocalAuthentication
+import CryptoKit
 
 class AppStore: ObservableObject {
 
@@ -97,24 +98,40 @@ class AppStore: ObservableObject {
     @Published var analyticsEnabled = false
     @Published var crashReportsEnabled = false
 
+    // MARK: - PIN
+
+    var hasAppPIN: Bool { UserDefaults.standard.string(forKey: "cove.pinHash") != nil }
+
+    func setAppPIN(_ pin: String) {
+        UserDefaults.standard.set(hashPIN(pin), forKey: "cove.pinHash")
+    }
+
+    func verifyAppPIN(_ pin: String) -> Bool {
+        guard let stored = UserDefaults.standard.string(forKey: "cove.pinHash") else { return false }
+        return hashPIN(pin) == stored
+    }
+
+    private func hashPIN(_ pin: String) -> String {
+        let digest = SHA256.hash(data: Data(pin.utf8))
+        return digest.compactMap { String(format: "%02x", $0) }.joined()
+    }
+
     // MARK: - Auth / Lock
 
+    var canUseFaceID: Bool {
+        let ctx = LAContext(); var e: NSError?
+        return ctx.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &e)
+    }
+
     func triggerFaceID() {
-        let context = LAContext()
-        var error: NSError?
-
-        guard context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error) else {
-            // Simulator or no biometrics enrolled — skip straight to passcode flow
-            triggerPasscode()
-            return
-        }
-
+        guard canUseFaceID else { return }
         lockScanState = .scanning
+        let context = LAContext()
         context.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics,
-                               localizedReason: "Unlock Cove") { success, authError in
+                               localizedReason: "Unlock Cove") { success, _ in
             DispatchQueue.main.async {
                 if success {
-                    self.unlockWithAnimation()
+                    self.unlock()
                 } else {
                     withAnimation { self.lockScanState = .idle }
                 }
@@ -122,29 +139,8 @@ class AppStore: ObservableObject {
         }
     }
 
-    func triggerPasscode() {
-        let context = LAContext()
-        var error: NSError?
-
-        guard context.canEvaluatePolicy(.deviceOwnerAuthentication, error: &error) else {
-            // No passcode set on device — unlock directly (dev/simulator edge case)
-            unlockWithAnimation()
-            return
-        }
-
-        context.evaluatePolicy(.deviceOwnerAuthentication,
-                               localizedReason: "Unlock Cove") { success, _ in
-            DispatchQueue.main.async {
-                if success { self.unlockWithAnimation() }
-            }
-        }
-    }
-
-    private func unlockWithAnimation() {
-        withAnimation(.spring(duration: 0.4)) { lockScanState = .success }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
-            withAnimation(.spring(duration: 0.4)) { self.isLocked = false }
-        }
+    func unlock() {
+        withAnimation(.spring(duration: 0.4)) { isLocked = false; lockScanState = .idle }
     }
 
     func completeOnboarding() {
