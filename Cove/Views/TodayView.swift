@@ -225,9 +225,6 @@ struct TodayTimeline: View {
 
             Spacer(minLength: 0)
         }
-        .overlay(alignment: .bottom) {
-            CoveTabBar()
-        }
     }
 
     private func hourLabel(_ hour: Int) -> String {
@@ -311,9 +308,6 @@ struct TodayList: View {
             }
 
             Spacer(minLength: 0)
-        }
-        .overlay(alignment: .bottom) {
-            CoveTabBar()
         }
     }
 }

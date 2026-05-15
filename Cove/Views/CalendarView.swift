@@ -30,9 +30,6 @@ struct CalendarView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
-        .overlay(alignment: .bottom) {
-            CoveTabBar()
-        }
     }
 }
 

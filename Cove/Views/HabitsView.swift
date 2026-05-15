@@ -82,8 +82,6 @@ struct HabitsView: View {
                 }
             }
             .background(t.bg)
-
-            CoveTabBar()
         }
         .ignoresSafeArea(edges: .top)
         .sheet(isPresented: $showRoutines) {

@@ -111,26 +111,22 @@ struct JournalView: View {
             }
             .background(t.bg)
 
-            // Bottom bar with tab + compose button
-            ZStack(alignment: .top) {
-                CoveTabBar()
-
-                HStack {
-                    Spacer()
-                    Button {
-                        showNewEntry = true
-                    } label: {
-                        Image(systemName: "square.and.pencil")
-                            .font(.system(size: 18, weight: .semibold))
-                            .foregroundColor(.white)
-                            .frame(width: 44, height: 44)
-                            .background(t.accent)
-                            .clipShape(Circle())
-                            .shadow(color: t.accent.opacity(0.35), radius: 10, y: 4)
-                    }
-                    .padding(.trailing, 20)
-                    .padding(.bottom, 72)
+            // Compose button floating above tab bar
+            HStack {
+                Spacer()
+                Button {
+                    showNewEntry = true
+                } label: {
+                    Image(systemName: "square.and.pencil")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundColor(.white)
+                        .frame(width: 44, height: 44)
+                        .background(t.accent)
+                        .clipShape(Circle())
+                        .shadow(color: t.accent.opacity(0.35), radius: 10, y: 4)
                 }
+                .padding(.trailing, 20)
+                .padding(.bottom, 90)
             }
         }
         .ignoresSafeArea(edges: .top)

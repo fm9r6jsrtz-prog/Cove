@@ -49,8 +49,6 @@ struct FocusView: View {
                 }
             }
             .background(t.bg)
-
-            CoveTabBar()
         }
         .ignoresSafeArea(edges: .top)
         .fullScreenCover(isPresented: $store.showFocusSession) {
