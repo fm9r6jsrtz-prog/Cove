@@ -7,6 +7,7 @@ class AppStore: ObservableObject {
     @Published var isLocked: Bool = true
     @Published var hasOnboarded: Bool = UserDefaults.standard.bool(forKey: "cove.onboarded")
     @Published var lockScanState: LockScanState = .idle
+    @Published var userName: String = UserDefaults.standard.string(forKey: "cove.name") ?? ""
 
     enum LockScanState { case idle, scanning, success }
 
@@ -30,8 +31,8 @@ class AppStore: ObservableObject {
     enum CalendarMode { case day, week, month }
 
     // MARK: - Today / Tasks
-    @Published var tasks: [CoveTask] = CoveTask.defaults
-    @Published var events: [CalendarEvent] = CalendarEvent.today
+    @Published var tasks: [CoveTask] = []
+    @Published var events: [CalendarEvent] = []
     @Published var showTaskSheet = false
     @Published var showQuickCapture = false
     @Published var showEnergyCheckin = false
@@ -63,7 +64,7 @@ class AppStore: ObservableObject {
     @Published var logOverrides = true
 
     // MARK: - Habits
-    @Published var habits: [Habit] = Habit.defaults
+    @Published var habits: [Habit] = []
 
     var habitCompletionPct: Int {
         let total = habits.count * 7
@@ -74,13 +75,7 @@ class AppStore: ObservableObject {
     var bestStreak: Int { habits.map(\.streak).max() ?? 0 }
 
     // MARK: - Journal
-    @Published var journalEntries: [JournalEntry] = [
-        JournalEntry(
-            title: "A quieter morning than expected.",
-            body: "Standup ran short, so I took the long way back to my desk. The cherry tree by the window has finally finished dropping its petals — there's a soft pink ring on the sidewalk.\n\nTrying to keep deep work blocks honest this week. Phone in the drawer at 9:30, no exceptions. So far so good.",
-            mood: 0
-        )
-    ]
+    @Published var journalEntries: [JournalEntry] = []
     @Published var currentJournalMood: Int = 0
     @Published var journalBody: String = ""
 
@@ -93,7 +88,7 @@ class AppStore: ObservableObject {
     @Published var showWeeklyReview = false
     @Published var dailyReviewEnergy: Int = 3
     @Published var dailyWin: String = ""
-    @Published var tomorrowTop3: [String] = ["Finish Locket spec · sections 6–8", "Send Q3 plan to Jordan", "Sign lease addendum"]
+    @Published var tomorrowTop3: [String] = ["", "", ""]
 
     // MARK: - Settings toggles
     @Published var requireFaceID = true
@@ -135,7 +130,11 @@ class AppStore: ObservableObject {
 
     func completeOnboarding() {
         hasOnboarded = true
+        isLocked = false
         UserDefaults.standard.set(true, forKey: "cove.onboarded")
+        UserDefaults.standard.set(userName, forKey: "cove.name")
+        UserDefaults.standard.set(accentName, forKey: "cove.accent")
+        UserDefaults.standard.set(themeDark, forKey: "cove.dark")
     }
 
     func lock() {

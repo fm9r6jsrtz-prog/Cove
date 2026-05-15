@@ -124,7 +124,7 @@ struct JournalEntry: Identifiable, Codable {
 // MARK: - Focus Session
 
 struct FocusSession {
-    var taskTitle: String = "Deep work · Locket spec"
+    var taskTitle: String = "Deep work"
     var totalSeconds: Int = 45 * 60
     var remainingSeconds: Int = 45 * 60
     var isRunning: Bool = false
