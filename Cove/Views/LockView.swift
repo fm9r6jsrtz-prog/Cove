@@ -70,7 +70,7 @@ struct LockView: View {
                             .foregroundColor(t.text3)
                     }
 
-                    Button("Use Passcode") { store.triggerFaceID() }
+                    Button("Use Passcode") { store.triggerPasscode() }
                         .font(.system(size: 15, weight: .medium))
                         .foregroundColor(t.accent)
                 }

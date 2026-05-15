@@ -100,31 +100,50 @@ class AppStore: ObservableObject {
     // MARK: - Auth / Lock
 
     func triggerFaceID() {
-        lockScanState = .scanning
         let context = LAContext()
         var error: NSError?
-        if context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error) {
-            context.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics,
-                                   localizedReason: "Unlock Cove") { success, _ in
-                DispatchQueue.main.async {
-                    if success {
-                        withAnimation(.spring(duration: 0.4)) { self.lockScanState = .success }
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
-                            withAnimation(.spring(duration: 0.4)) { self.isLocked = false }
-                        }
-                    } else {
-                        withAnimation { self.lockScanState = .idle }
-                    }
+
+        guard context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error) else {
+            // Simulator or no biometrics enrolled — skip straight to passcode flow
+            triggerPasscode()
+            return
+        }
+
+        lockScanState = .scanning
+        context.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics,
+                               localizedReason: "Unlock Cove") { success, authError in
+            DispatchQueue.main.async {
+                if success {
+                    self.unlockWithAnimation()
+                } else {
+                    withAnimation { self.lockScanState = .idle }
                 }
             }
-        } else {
-            // Simulator / no biometrics — just unlock with a short delay
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
-                withAnimation(.spring(duration: 0.4)) { self.lockScanState = .success }
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
-                    withAnimation(.spring(duration: 0.4)) { self.isLocked = false }
-                }
+        }
+    }
+
+    func triggerPasscode() {
+        let context = LAContext()
+        var error: NSError?
+
+        guard context.canEvaluatePolicy(.deviceOwnerAuthentication, error: &error) else {
+            // No passcode set on device — unlock directly (dev/simulator edge case)
+            unlockWithAnimation()
+            return
+        }
+
+        context.evaluatePolicy(.deviceOwnerAuthentication,
+                               localizedReason: "Unlock Cove") { success, _ in
+            DispatchQueue.main.async {
+                if success { self.unlockWithAnimation() }
             }
+        }
+    }
+
+    private func unlockWithAnimation() {
+        withAnimation(.spring(duration: 0.4)) { lockScanState = .success }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+            withAnimation(.spring(duration: 0.4)) { self.isLocked = false }
         }
     }
 
